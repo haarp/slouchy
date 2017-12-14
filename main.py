@@ -120,7 +120,6 @@ def take_picture(video_device):
       indicating a camera failure.
   """
   cap = cv2.VideoCapture(video_device)
-  cap.open(video_device)
 
   if config.camera_warm_up > 0: # Some cameras need to be given worm up time
     time.sleep(config.camera_warm_up)
@@ -130,12 +129,9 @@ def take_picture(video_device):
 correctly.')
 
   ret, image = cap.read()      # Grab and decode frame from the camera
-  cap.release()                # Close the camera
 
   if not ret:
     return Maybe(False, 'Camera unexpectedly disconnected.')
-
-  cap.release()
 
   # Make image grayscale for processing
   gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
