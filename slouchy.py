@@ -5,7 +5,7 @@ import sys
 import signal
 import time
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 # Local imports
 import config
@@ -36,38 +36,39 @@ def setup():
   config.config_file.write()
 
 
-class TrayIcon(QtGui.QSystemTrayIcon):
+class TrayIcon(QtWidgets.QSystemTrayIcon):
   def __init__(self, icon, parent=None):
-    QtGui.QSystemTrayIcon.__init__(self, icon, parent)
+    QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
     self.workThread = SlouchingThread()
 
-    menu        = QtGui.QMenu(parent)
+    menu        = QtWidgets.QMenu(parent)
     setupAction = menu.addAction("Setup")
     exitAction  = menu.addAction("Quit")
     self.setContextMenu(menu)
 
-    self.connect(exitAction, QtCore.SIGNAL('triggered()'), sys.exit)
-    self.connect(setupAction, QtCore.SIGNAL('triggered()'), setup)
+    exitAction.triggered.connect(sys.exit)
+    setupAction.triggered.connect(setup)
 
   def __del__(self):
-    QtGui.QSystemTrayIcon.__del__(self)
+    QtWidgets.QSystemTrayIcon.__del__(self)
     self.workThread.terminate()
 
   def alert(self):
-    # Alerting by receiving a signal
-    self.connect(self.workThread, QtCore.SIGNAL("slouching_alert(QString, QString)"),
-                 self.showMessage)
+    # Alerting by receiving signal
+    self.workThread.slouching_alert.connect(self.showMessage)
     self.workThread.start()
 
-class WrapperWidget(QtGui.QWidget):
+class WrapperWidget(QtWidgets.QWidget):
   def __init__(self, parent=None):
-    QtGui.QWidget.__init__(self, parent)
+    QtWidgets.QWidget.__init__(self, parent)
 
     self.setGeometry(100, 100, 100, 100)
     self.setWindowTitle('threads')
     # self.show()
 
 class SlouchingThread(QtCore.QThread):
+  slouching_alert = QtCore.pyqtSignal(str, str, name="slouching_alert")
+
   def __init__(self):
     QtCore.QThread.__init__(self)
     self.run_loop = True
@@ -108,16 +109,16 @@ class SlouchingThread(QtCore.QThread):
           slouching_messages = slouching_messages + "Your head is tilted!"
 
         if body_slouching or head_tilting:
-          self.emit(QtCore.SIGNAL('slouching_alert(QString, QString)'),
-                  "Your posture is off!", str(slouching_messages))
+          print("your posture is off!")
+          self.slouching_alert.emit("Your posture is off!", str(slouching_messages))
 
       else:
-        self.emit(QtCore.SIGNAL('slouching_alert(QString, QString)'),
-                  "Error encountered", str(maybe_slouching.result))
+        print("Error encountered")
+        self.slouching_alert.emit("Error encountered", str(maybe_slouching.result))
 
       time.sleep(float(check_frequency))
 
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 signal.signal(signal.SIGINT, signal.SIG_DFL) #Force PYQT to handle SIGINT (CTRL+C)
 
 w = WrapperWidget()
