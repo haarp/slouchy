@@ -229,7 +229,7 @@ def find_head_tilt(face):
   if len(eyes) > 1:
     left  = eyes[0]
     right = eyes[1]
-    print 'Left eye', left, 'Right eye', right
+    print ('Left eye', left, 'Right eye', right)
     slope = (left[1] - right[1]) / (left[0] - right[0])
     angle = abs(atan(slope))
 

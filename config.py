@@ -22,7 +22,7 @@ else:
 args = vars(args)
 
 # Overide config file settings per the command line
-for key, val in args.iteritems():
+for key, val in args.items():
   if key in config_file['MAIN'].keys():
     globals()[key] = args[key] if args[key] else config_file['MAIN'][key]
 
